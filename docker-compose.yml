@@ -60,6 +60,19 @@ services:
     networks:
       - taskflow_network
 
+  mongodb:
+    image: mongo:latest
+    container_name: taskflow-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - taskflow_network
+
 networks:
   taskflow_network:
     driver: bridge
+
+volumes:
+  mongo_data:

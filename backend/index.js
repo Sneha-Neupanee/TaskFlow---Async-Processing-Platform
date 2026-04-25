@@ -3,72 +3,66 @@ require("dotenv").config();
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
-const mongoose = require("mongoose");
 const { Server } = require("socket.io");
-const { Queue } = require("bullmq");
-const IORedis = require("ioredis");
+const connectDB = require("./src/config/db");
+
+const authRoutes = require("./src/routes/auth");
+const jobRoutes = require("./src/routes/jobs");
 
 const app = express();
 const server = http.createServer(app);
 
+// -------------------
+// Socket.io Setup
+// -------------------
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: process.env.CLIENT_URL || "*",
+    methods: ["GET", "POST"],
   },
 });
 
-app.use(cors());
+// Export io so worker / services can use it
+module.exports.io = io;
+
+// -------------------
+// Middleware
+// -------------------
+app.use(cors({ origin: process.env.CLIENT_URL || "*" }));
 app.use(express.json());
-
-// -------------------
-// Redis Connection
-// -------------------
-const connection = new IORedis({
-  host: process.env.REDIS_HOST,
-  port: process.env.REDIS_PORT,
-});
-
-// -------------------
-// Queue Setup
-// -------------------
-const queue = new Queue(process.env.QUEUE_NAME || "taskflow_queue", {
-  connection,
-});
 
 // -------------------
 // MongoDB Connection
 // -------------------
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected"))
-  .catch((err) => console.log(err));
+connectDB();
 
 // -------------------
 // Routes
 // -------------------
-
-// Health check
 app.get("/", (req, res) => {
-  res.send("Backend running 🚀");
+  res.json({ status: "TaskFlow Backend running 🚀" });
 });
 
-// Create Job
-app.post("/job", async (req, res) => {
-  const { type, data } = req.body;
-
-  try {
-    const job = await queue.add(type, data);
-    res.json({ success: true, jobId: job.id });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+app.use("/api/auth", authRoutes);
+app.use("/api/jobs", jobRoutes);
 
 // -------------------
-// Socket.io
+// Socket.io Events
 // -------------------
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
+
+  // Frontend clients join their user room to receive job updates
+  socket.on("join", (userId) => {
+    socket.join(`user:${userId}`);
+    console.log(`Socket ${socket.id} joined room user:${userId}`);
+  });
+
+  // Worker emits this event to broadcast job status updates to the user's room
+  socket.on("worker:job_update", ({ userId, jobId, status, result }) => {
+    io.to(`user:${userId}`).emit("job:update", { jobId, status, result });
+    console.log(`Job ${jobId} status → ${status} for user ${userId}`);
+  });
 
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);

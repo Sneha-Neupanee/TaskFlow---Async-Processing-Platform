@@ -1,12 +1,11 @@
 {
   "name": "worker",
   "version": "1.0.0",
-  "description": "",
+  "description": "TaskFlow background job worker",
   "main": "index.js",
   "scripts": {
     "dev": "node index.js",
-    "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +15,7 @@
     "bullmq": "^5.76.2",
     "dotenv": "^17.4.2",
     "ioredis": "^5.10.1",
-    "mongoose": "^9.5.0"
+    "mongoose": "^9.5.0",
+    "socket.io-client": "^4.8.3"
   }
 }
