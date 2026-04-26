@@ -1,4 +1,7 @@
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
+
+console.log("Debug: MONGO_URI from env -", process.env.MONGO_URI ? "Loaded successfully" : "FAILED TO LOAD");
 
 const express = require("express");
 const http = require("http");
