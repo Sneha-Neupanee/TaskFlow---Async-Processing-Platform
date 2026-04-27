@@ -1,70 +1,138 @@
-# 🚀 TaskFlow: Architecture & Job Processing System
+TaskFlow: Architecture & Job Processing System
 
-TaskFlow is a production-style, full-stack job processing engine. It utilizes a decoupled architecture where an Express API ingests job requests, pushes them to a Redis queue using BullMQ, and a dedicated Node.js Worker process executes them asynchronously. Real-time updates are pushed to the frontend via Socket.io.
+TaskFlow is a production-style full-stack job processing engine built with a decoupled architecture. It uses an Express API to ingest job requests, Redis (BullMQ) for queue management, a dedicated Node.js worker for asynchronous processing, and Socket.io for real-time updates.
 
-## 🏗️ Architecture Design
+------------------------------------------------------------
 
-```mermaid
-graph TD;
-    Client[Next.js Client] -->|1. HTTP Auto/Job Req| API(Express API);
-    API -->|2. Store Job (Pending)| DB[(MongoDB)];
-    API -->|3. Push to Queue| Queue[(Redis / BullMQ)];
-    Queue -->|4. Consume Job| Worker(Node.js Worker process);
-    Worker -->|5. Update Job (Processing/Done)| DB;
-    Worker -->|6. Emit Status Event| API;
-    API -->|7. WebSocket Broadcast| Client;
-```
+ARCHITECTURE OVERVIEW
 
-### Components
-1. **Frontend**: Next.js 15, TailwindCSS, Axios, Socket.io-client.
-2. **Backend**: Express, BullMQ, Socket.io Server, Mongoose.
-3. **Queue**: Redis for state management and job queuing.
-4. **Worker**: Distinct background node process, manages BullMQ concurrency and heavy processing without blocking the API. Let's UI track progress seamlessly.
+Client (Next.js)
+    ↓ HTTP Request
+Express API Server
+    ↓
+MongoDB (Job Storage)
+    ↓
+Redis Queue (BullMQ)
+    ↓
+Node.js Worker (Background Processing)
+    ↓
+MongoDB (Status Updates)
+    ↓
+Socket.io Events
+    ↓
+Client (Real-time Updates)
 
-## 🚀 Setup Instructions
+------------------------------------------------------------
 
-### Prerequisites
-* Docker & Docker Compose
-* Node.js v20+
+TECH STACK
 
-### Option 1: Docker (Easiest)
-1. Rename `.env.example` to `.env` in the root directory (Variables are pre-configured for Docker).
-2. Start the entire cluster:
-   ```bash
+Frontend:
+- Next.js 15
+- TailwindCSS
+- Axios
+- Socket.io Client
+
+Backend:
+- Node.js + Express
+- MongoDB (Mongoose)
+- Redis (BullMQ)
+- Socket.io
+
+Worker:
+- Node.js background service
+- BullMQ queue processor
+- Concurrent job execution
+
+Infrastructure:
+- Docker
+- Docker Compose
+
+------------------------------------------------------------
+
+FOLDER STRUCTURE
+
+TaskFlow/
+│
+├── frontend/
+│   ├── app/
+│   ├── components/
+│   ├── pages/
+│   ├── services/
+│   └── package.json
+│
+├── backend/
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   ├── services/
+│   ├── socket/
+│   └── server.js
+│
+├── worker/
+│   ├── processors/
+│   ├── queue/
+│   └── worker.js
+│
+├── docker-compose.yml
+├── .env.example
+└── README.md
+
+------------------------------------------------------------
+
+SETUP INSTRUCTIONS
+
+Prerequisites:
+- Docker & Docker Compose
+- Node.js v20+
+
+Option 1: Docker (Recommended)
+
+1. Rename .env.example to .env
+2. Run:
    docker-compose up --build
-   ```
-3. Visit `http://localhost:3000` to access the application.
+3. Open:
+   http://localhost:3000
 
-*Services Started:*
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:5000
-- **Redis Server**: localhost:6379
-- **MongoDB**: localhost:27017
-- **Worker**: Background process
+Services:
+- Frontend: http://localhost:3000
+- Backend: http://localhost:5000
+- Redis: localhost:6379
+- MongoDB: localhost:27017
 
-### Option 2: Running Locally
-If you prefer not to use docker-compose, ensure Redis and MongoDB are running on your machine.
-1. Populate your `.env` (Use `.env.example` as a template).
-2. Install dependencies:
-   ```bash
-   # Backend
-   cd backend && npm install
-   
-   # Worker
-   cd worker && npm install
+------------------------------------------------------------
 
-   # Frontend
-   cd frontend && npm install
-   ```
-3. Start the services in separate terminals:
-   ```bash
-   cd backend && npm run dev
-   cd worker && npm run dev
-   cd frontend && npm run dev
-   ```
+Option 2: Manual Setup
 
-## 🛠️ Job Types Available
-TaskFlow ships with 3 mock job processors to showcase the worker logic:
-- `image`: Simulates heavy image processing operations (3s delay).
-- `csv`: Simulates parsing large data files (4s delay).
-- `simulation`: Simulates complex mathematical modelling (5s delay).
+Backend:
+cd backend
+npm install
+npm run dev
+
+Worker:
+cd worker
+npm install
+npm run dev
+
+Frontend:
+cd frontend
+npm install
+npm run dev
+
+------------------------------------------------------------
+
+JOB TYPES
+
+- image: Simulates image processing (3s delay)
+- csv: Simulates CSV parsing (4s delay)
+- simulation: Simulates heavy computation (5s delay)
+
+------------------------------------------------------------
+
+FEATURES
+
+- Asynchronous job processing with Redis + BullMQ
+- Real-time job tracking using Socket.io
+- Decoupled worker architecture
+- Scalable backend design
+- Dockerized full-stack setup
+- Persistent job storage in MongoDB
