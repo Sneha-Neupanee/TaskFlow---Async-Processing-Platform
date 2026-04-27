@@ -50,7 +50,7 @@ Infrastructure:
 ------------------------------------------------------------
 
 FOLDER STRUCTURE
-
+```text
 TaskFlow/
 │
 ├── frontend/
@@ -76,7 +76,7 @@ TaskFlow/
 ├── docker-compose.yml
 ├── .env.example
 └── README.md
-
+```
 ------------------------------------------------------------
 
 SETUP INSTRUCTIONS
